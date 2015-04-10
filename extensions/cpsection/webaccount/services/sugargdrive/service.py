@@ -25,7 +25,7 @@ GOOGLE_API = os.path.join(env.get_profile_path(), 'extensions', 'webservice')
 sys.path.append(GOOGLE_API)
 
 from gi.repository import Gtk
-from gi.repository import WebKit
+from gi.repository import WebKit2 as WebKit
 
 from jarabe.webservice import accountsmanager
 from cpsection.webaccount.web_service import WebService
@@ -46,7 +46,7 @@ class WebService(WebService):
         self.authorize_url = None
 
     def get_icon_name(self):
-        return 'sugargdrive'
+        return 'computer'
 
     def config_service_cb(self, widget, event, container):
         wkv = WebKit.WebView()
@@ -54,8 +54,7 @@ class WebService(WebService):
         wkv.load_uri(url)
         logging.debug(url)
         wkv.grab_focus()
-        wkv.connect('navigation-policy-decision-requested',
-                    self._nav_policy_cb)
+        wkv.connect('load-changed', self.__load_changed_cb)
 
         for c in container.get_children():
             container.remove(c)
@@ -73,8 +72,8 @@ class WebService(WebService):
         self.authorize_url = self._flow.step1_get_authorize_url()
         return self.authorize_url
 
-    def _nav_policy_cb(self, view, frame, req, action, param):
-        uri = req.get_uri()
+    def __load_changed_cb(self, view, event):
+        uri = view.get_uri()
         if uri is None:
             return
 
